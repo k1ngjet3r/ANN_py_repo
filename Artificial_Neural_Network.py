@@ -7,6 +7,10 @@ def Sigmoid(z):
     return 1/(1 + exp(-z))
 
 
+def sigmoid_prime(z):
+    return Sigmoid(z) * (1 - Sigmoid(z))
+
+
 class Network:
     def __init__(self, sizes):
         self.num_layers = len(sizes)
@@ -81,12 +85,3 @@ class Network:
 
     def cost_derivation(self, output_activations, y):
         return output_activations - y
-
-
-def sigmoid_prime(z):
-    return Sigmoid(z) * (1 - Sigmoid(z))
-
-
-net = Network([2, 3, 1])
-
-print(net.weights)
