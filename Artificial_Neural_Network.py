@@ -85,3 +85,8 @@ class Network:
 
 def sigmoid_prime(z):
     return Sigmoid(z) * (1 - Sigmoid(z))
+
+
+net = Network([2, 3, 1])
+
+print(net.weights)
