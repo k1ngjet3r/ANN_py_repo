@@ -1,3 +1,4 @@
+import mnist_loader
 import random
 from math import exp
 import numpy as np

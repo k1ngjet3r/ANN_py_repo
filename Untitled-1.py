@@ -18,8 +18,9 @@ net = Network([2, 3, 1])
 # print('------------------------')
 nabla_b = [np.zeros(b.shape) for b in net.biases]
 
-# print(net.biases)
-# print('------------------------')
+
+print(net.biases)
+print('------------------------')
 # print(net.weights)
 
 # print('------------------------')
@@ -27,9 +28,13 @@ nabla_b = [np.zeros(b.shape) for b in net.biases]
 list(zip(net.biases, net.weights))
 
 
-weight = ['a', 'b', 'c']
+weight = [['a', 'b'], ['d', 'e'], ['g', 'h']]
 biases = ['1', '2']
 
-for b, w in zip(net.biases, net.weights):
-    print(b, w)
-    print('-----------------------')
+# for b, w in zip(net.biases, net.weights):
+#    print(b, w)
+#    print('-----------------------')
+
+print(nabla_b)
+
+print(np.transpose(weight))
