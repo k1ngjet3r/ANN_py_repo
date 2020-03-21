@@ -86,3 +86,7 @@ class Network:
 
     def cost_derivation(self, output_activations, y):
         return output_activations - y
+
+
+net = Network([784, 30, 10])
+net.SDG(training_data, 30, 10, 3.0, test_data=test_data)
