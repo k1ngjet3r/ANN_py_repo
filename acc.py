@@ -54,7 +54,7 @@ class Network:
 
     def update_mini_datch(self, mini_batch, learning_rate):
         for x, y in mini_batch:
-            nebla_w, nebla_w = self.backprop(x, y)
+            nebla_w, nebla_b = self.backprop(x, y)
             self.weights = [
                 w - (learning_rate / len(mini_batch)) * nw
                 for w, nw in zip(self.weights, nebla_w)
