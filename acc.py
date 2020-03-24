@@ -2,10 +2,11 @@ import random
 from math import exp
 import numpy as np
 import mnist_data_loader
+from mnist_data_loader import test_input, train_input
 
 
 def Sigmoid(x):
-    return 1 / (1 + exp(-q))
+    return 1 / (1 + exp(-x))
 
 
 def diff_sigmoid(x):
@@ -26,6 +27,7 @@ class Network:
         acts = [x]
         # feed forward
         for w, b in zip(self.weights, self.biases):
+            z = [sum(x) for x in zip(np.dot(w, act), b)]
             z = np.dot(w, act) + b
             zs.append(z)  # zs = [z1, z2, z3, ..., zL]
             act = [Sigmoid(zz) for zz in z]
@@ -54,7 +56,7 @@ class Network:
 
         return (nebla_w, nebla_b)
 
-    def update_mini_datch(self, mini_batch, learning_rate):
+    def update_mini_batch(self, mini_batch, learning_rate):
         for y, x in mini_batch:
             nebla_w, nebla_b = self.backprop(x, y)
             self.weights = [w - (learning_rate / len(mini_batch))
@@ -63,7 +65,7 @@ class Network:
                            * nb for b, nb in zip(self.biases, nebla_b)]
 
   # Stochastic gradient descent
-    def SDG(self, training_data, epoches, mini_batch_size, eta, test_data=None):
+    def SGD(self, training_data, epoches, mini_batch_size, eta, test_data=None):
         if test_data:
             n_test = len(test_data)
         n = len(training_data)
@@ -88,3 +90,8 @@ class Network:
         for y, x in test_data:
             test_results = [(np.argmax(self.feedforward(x)), y)]
         return sum([int(x == y) for (x, y) in test_results])
+
+
+# Execution
+net = Network([784, 30, 10])
+net.SGD(train_input, 30, 10, 3.0, test_data=test_input)
