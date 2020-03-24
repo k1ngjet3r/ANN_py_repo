@@ -17,7 +17,8 @@ class Network:
         self.num_layers = len(sizes)
         self.sizes = sizes
         self.biases = [np.random.randn(y, 1) for y in sizes[1:]]
-        self.weights = [np.random.randn(y, x) for x, y in zip(sizes[:-1], sizes[1:])]
+        self.weights = [np.random.randn(y, x)
+                        for x, y in zip(sizes[:-1], sizes[1:])]
 
     def feedforward(self, a):
         for w, b in self.weights, self.biases:
@@ -31,14 +32,15 @@ class Network:
         for j in range(epochs):
             random.shuffle(training_data)
             mini_batches = [
-                training_data[k : k + mini_batch_size]
+                training_data[k: k + mini_batch_size]
                 for k in range(0, n, mini_batch_size)
             ]
             for mini_batch in mini_batches:
                 self.update_mini_batch(mini_batch, eta)
             if test_data:
                 print(
-                    "Epoch {0}: {1} / {2}".format(j, self.evaluate(test_data), n_test)
+                    "Epoch {0}: {1} / {2}".format(j,
+                                                  self.evaluate(test_data), n_test)
                 )
 
             else:
@@ -70,7 +72,8 @@ class Network:
             activation = Sigmoid(z)
             activations.append(activation)
 
-        delta = self.cost_derivation(activations[-1], y) * sigmoid_prime(zs[-1])
+        delta = self.cost_derivation(
+            activations[-1], y) * sigmoid_prime(zs[-1])
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
 
@@ -83,7 +86,8 @@ class Network:
         return (nabla_b, nabla_w)
 
     def evaluate(self, test_data):
-        test_results = [(np.argmax(self.feedforward(x)), y) for (x, y) in test_data]
+        test_results = [(np.argmax(self.feedforward(x)), y)
+                        for (x, y) in test_data]
         return sum(int(x == y) for (x, y) in test_results)
 
     def cost_derivation(self, output_activations, y):
