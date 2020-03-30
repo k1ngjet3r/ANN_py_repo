@@ -15,12 +15,12 @@ test_data = np.loadtxt(data_path + "mnist_test.csv", delimiter=",")
 # by 0.99 / 255 and adding 0.01 to the result. This way, we avoid 0
 # values as inputs, which are capable of preventing weight updates,
 # as we we seen in the introductory chapter.
-frc = (0.99 / 255)
-test_imgs = np.asfarray(test_data[:, 1:]) * frc + 0.01
-train_imgs = np.asfarray(train_data[:, 1:]) * frc + 0.01
+frc = 0.99 / 255
+test_imgs = np.asfarray(test_data[:, 1:], dtype="float") * frc + 0.01
+train_imgs = np.asfarray(train_data[:, 1:], dtype="float") * frc + 0.01
 
-test_labs = np.asfarray(test_data[:, :1])
-train_labs = np.asfarray(train_data[:, :1])
+test_labs = np.asfarray(test_data[:, :1], dtype="float")
+train_labs = np.asfarray(train_data[:, :1], dtype="float")
 
 lr = np.arange((num_diff_labs))
 
@@ -39,8 +39,8 @@ test_input = list(zip(test_labs_onehot, test_imgs))
 train_input = list(zip(train_labs_onehot, train_imgs))
 
 
-# below is the code to show the data in picture form
+# # below is the code to show the data in picture form
 # for i in range(10):
 #     img = test_imgs[i].reshape((28, 28))
-#     plt.imshow(img, cmap='Greys')
+#     plt.imshow(img, cmap="Greys")
 #     plt.show()
