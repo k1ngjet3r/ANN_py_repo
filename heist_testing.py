@@ -49,11 +49,14 @@ for w, b in zip(net.weights, net.biases):
     activation = sigmoid(z)
     activations.append(sigmoid(z))
     d_z = diff_sigmoid(z)
+    d_zs.append(d_z)
 
-error_output = (activations[-1] - desire_output) * d_zs[-1]
-errors = [error_output]
 
-print(len(errors))
+error_output = (np.reshape(
+    activations[-1], (len(desire_output), 1)) - np.reshape(desire_output, (len(desire_output), 1))) * np.reshape(d_zs[-1], (len(desire_output), 1))
+#errors = [error_output]
+
+print(error_output.shape)
 # training_data[0] = [
 #     (array([0., 0., 0., 0., 0., 1., 0., 0., 0., 0.]),
 #     array([0.01      , 0.01      , 0.01      , 0.01      , 0.01      ,

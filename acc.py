@@ -28,11 +28,13 @@ class Network:
             z = np.reshape(np.dot(w, activation), (len(b), 1)) + b
             zs.append(z)
             activation = sigmoid(z)
+            # activations = [a0, a1, a2, ..., aL]
             activations.append(activation)
             d_z = diff_sigmoid(z)
-            d_zs.append(d_z)
+            d_zs.append(d_z)  # d_zs = [d_z1, d_z2, d_z3, ..., d_zL]
         # the error for layer L (last layer)
-        error_output = (activations[-1] - y) * d_zs[-1]
+        error_output = error_output = (np.reshape(
+            activations[-1], (len(y), 1)) - np.reshape(y, (len(y), 1))) * np.reshape(d_zs[-1], (len(y), 1))
         errors = [error_output]
 
         # finding errors for rest of the layers (L-1, L-2, ... , 2, 1)
