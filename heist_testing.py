@@ -54,9 +54,28 @@ for w, b in zip(net.weights, net.biases):
 
 error_output = (np.reshape(
     activations[-1], (len(desire_output), 1)) - np.reshape(desire_output, (len(desire_output), 1))) * np.reshape(d_zs[-1], (len(desire_output), 1))
-#errors = [error_output]
+errors = [error_output]
 
-print(error_output.shape)
+
+L = net.num_layers
+for i in range(1, L - 1):
+    tran_w = np.transpose(net.weights[-i])
+    inner = np.dot(tran_w, errors[-1])
+    error = inner * d_zs[-i - 1]
+    errors.append(error)  # errors = [dL, ..., d2, d1]
+
+grad_ws = []
+grad_bs = errors
+
+for i in range(L - 1):
+    grad_w = errors[i] * activations[-i - 1]
+    grad_ws.append(grad_w)
+
+for i in range(net.num_layers - 1):
+    print((errors[i]).shape)
+    print((net.biases[i]).shape)
+    print('-----------')
+
 # training_data[0] = [
 #     (array([0., 0., 0., 0., 0., 1., 0., 0., 0., 0.]),
 #     array([0.01      , 0.01      , 0.01      , 0.01      , 0.01      ,
