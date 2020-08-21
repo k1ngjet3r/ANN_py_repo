@@ -1,98 +1,135 @@
-import mnist_loader
-import random
-from math import exp
 import numpy as np
+from math import exp
+import tensorflow as tf
+from random import shuffle
+
+mnist = tf.keras.datasets.mnist
+
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+fraction = 0.99/255.0
+x_train = x_train * fraction + 0.01
+x_test = x_test * fraction + 0.01
+
+desired_y_train = []
+desired_y_test = []
+
+for i in y_train:
+    zero = np.zeros(10)
+    zero[i] = 1
+    desired_y_train.append(zero)
+
+for j in y_test:
+    zero = np.zeros(10)
+    zero[j] = 1
+    desired_y_test.append(zero)
 
 
-def Sigmoid(z):
+def data_formatter(x, y):
+    return [(xx, yy) for xx, yy in zip(x, y)]
+
+
+training_data = data_formatter(x_train, desired_y_train)
+testing_data = data_formatter(x_test, desired_y_test)
+
+
+def activation_function(z):
     return 1 / (1 + exp(-z))
 
 
-def sigmoid_prime(z):
-    return Sigmoid(z) * (1 - Sigmoid(z))
+def diff_activation_function(z):
+    return activation_function(z) * (1 - activation_function(z))
 
 
 class Network:
     def __init__(self, sizes):
         self.num_layers = len(sizes)
         self.sizes = sizes
-        self.biases = [np.random.randn(y, 1) for y in sizes[1:]]
+        self.biases = [np.random.randn(y, 1).flatten() for y in sizes[1:]]
         self.weights = [np.random.randn(y, x)
                         for x, y in zip(sizes[:-1], sizes[1:])]
 
-    def feedforward(self, a):
-        for w, b in self.weights, self.biases:
-            a = Sigmoid(np.dot(w, a) + b)
-        return a
-
-    def SDG(self, training_data, epochs, mini_batch_size, eta, test_data=None):
-        if test_data:
-            n_test = len(test_data)
-        n = len(training_data)
-        for j in range(epochs):
-            random.shuffle(training_data)
-            mini_batches = [
-                training_data[k: k + mini_batch_size]
-                for k in range(0, n, mini_batch_size)
-            ]
-            for mini_batch in mini_batches:
-                self.update_mini_batch(mini_batch, eta)
-            if test_data:
-                print(
-                    "Epoch {0}: {1} / {2}".format(j,
-                                                  self.evaluate(test_data), n_test)
-                )
-
-            else:
-                print("Epoch {0} complete".format(j))
-
-    def update_mini_batch(self, mini_batch, eta):
+    def backprop(self, input_layer, desired_output):
+        # setting the shape of the nabla_b and nabla_w
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
-        for x, y in mini_batch:
-            delta_nabla_b, delta_nabla_w = self.backprop(x, y)
-            nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
-            nabla_w = [nw + dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
-        self.weights = [
-            w - (eta / len(mini_batch)) * nw for w, nw in zip(self.weights, nabla_w)
-        ]
-        self.biases = [
-            b - (eta / len(mini_batch)) * nb for b, nb in zip(self.biases, nabla_b)
-        ]
 
-    def backprop(self, x, y):
-        nabla_b = [np.zeros(b.shape) for b in self.biases]
-        nabla_w = [np.zeros(w.shape) for w in self.weights]
-        activation = x
-        activations = [x]
+        # Setting up the required list
+        activation = input_layer.flatten()
+        activations = [input_layer.flatten()]
         zs = []
-        for b, w in zip(self.biases, self.weights):
-            z = np.dot(w, activation) + b
-            zs.append(z)
-            activation = Sigmoid(z)
+
+        # Feeding forward and we got the full picture of the network including every neurons (a) and weighted sum (z) in each layers
+        for i in range(self.num_layers - 1):
+            weighted_sum = np.add(
+                np.dot(self.weights[i], activation), self.biases[i].flatten())
+            zs.append(weighted_sum)
+            activation = np.array([activation_function(z)
+                                   for z in weighted_sum])
             activations.append(activation)
 
-        delta = self.cost_derivation(
-            activations[-1], y) * sigmoid_prime(zs[-1])
+        # Backward pass, last layer first
+        delta = (activations[-1] - desired_output) * \
+            np.array([diff_activation_function(z) for z in zs[-1]])
         nabla_b[-1] = delta
-        nabla_w[-1] = np.dot(delta, activations[-2].transpose())
+        nabla_w[-1] = np.array([(i * activations[-2].transpose()).tolist()
+                                for i in delta])
 
-        for l in range(2, self.num_layers):
-            z = zs[-1]
-            sp = sigmoid_prime(z)
-            delta = np.dot(self.weights[-l + 1].transpose(), delta) * sp
-            nabla_b[-1] = delta
-            nabla_w[-1] = np.dot(delta, activations[-l - 1].transpose())
+        # Other layers
+        for j in range(2, self.num_layers):
+            z = zs[-j]
+            activation_prime = np.array(
+                [diff_activation_function(zz) for zz in z])
+            delta = np.dot(
+                self.weights[-j + 1].transpose(), delta) * activation_prime
+            nabla_b[-j] = delta
+            nabla_w[-j] = np.array([(i * activations[-j -
+                                                     1].transpose()).tolist() for i in delta])
+
         return (nabla_b, nabla_w)
 
+    def update_weights_and_biases(self, nabla_w, nabla_b, learning_rate, data_mini_batch_size):
+        self.weights = [w - (learning_rate/data_mini_batch_size)
+                        * n_w for w, n_w in zip(self.weights, nabla_w)]
+        self.biases = [b - (learning_rate/data_mini_batch_size)
+                       * n_b for b, n_b in zip(self.biases, nabla_b)]
+        # return self.weights, self.biases
+
     def evaluate(self, test_data):
-        test_results = [(np.argmax(self.feedforward(x)), y)
+        test_results = [(np.argmax(self.feed_forward(x)), np.argmax(y))
                         for (x, y) in test_data]
         return sum(int(x == y) for (x, y) in test_results)
 
-    def cost_derivation(self, output_activations, y):
-        return output_activations - y
+    def feed_forward(self, a):
+        a = a.flatten()
+        for b, w in zip(self.biases, self.weights):
+            weighted_sum = np.add(np.dot(w, a), b)
+            a = np.array([activation_function(z) for z in weighted_sum])
+        return a
+
+    def SGD(self, training_data, batch_size, epoch, learning_rate, test_data=None):
+        if test_data != None:
+            n_test = len(test_data)
+        n = len(training_data)
+        for i in range(epoch):
+            print('running epoch no. {0}'.format(i + 1))
+            shuffle(training_data)
+            mini_batches = [training_data[k: k + batch_size]
+                            for k in range(0, n, batch_size)]
+            for mini_batch in mini_batches:
+                for x, y in mini_batch:
+                    nabla_b, nabla_w = self.backprop(x, y)
+                    self.update_weights_and_biases(
+                        nabla_w, nabla_b, learning_rate, batch_size)
+            if test_data:
+                print('Epoch {0}: {1} / {2}'.format(i,
+                                                    self.evaluate(test_data), n_test))
+                print('Accuracy: {0}%'.format(
+                    (self.evaluate(test_data) / n_test)*100))
+            else:
+                print('Epoch {0} complete'.format(i))
 
 
 net = Network([784, 30, 10])
-net.SDG(training_data, 30, 10, 3.0, test_data=test_data)
+net.SGD(training_data, batch_size=10, epoch=30,
+        learning_rate=3.0, test_data=testing_data)
