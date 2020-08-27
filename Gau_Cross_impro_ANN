@@ -1,0 +1,15 @@
+# improvement_elements
+
+import numpy as np
+
+
+class Network:
+
+    def __init__(self, sizes):
+        self.num_layers = len(sizes)
+        self.sizes = sizes
+        self.biases = [np.random.randn(y, 1) for y in self.sizes[1:]]
+        # initialized the weights using Gaussian distribution
+        self.weights = [np.random.randn(y, x)/np.squrt(x)
+                        for x, y in zip(self.sizes[:-1], self.sizes[1:])]
+        self.cost_function = cost_function
