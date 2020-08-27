@@ -5,7 +5,7 @@ import numpy as np
 
 class Network:
 
-    def __init__(self, sizes):
+    def __init__(self, sizes, cost_function):
         self.num_layers = len(sizes)
         self.sizes = sizes
         self.biases = [np.random.randn(y, 1) for y in self.sizes[1:]]
@@ -13,3 +13,8 @@ class Network:
         self.weights = [np.random.randn(y, x)/np.squrt(x)
                         for x, y in zip(self.sizes[:-1], self.sizes[1:])]
         self.cost_function = cost_function
+
+    # Defining the cross_entropy cost function
+    def cross_entropy_cost_function(desired_outputs, outputs, weights):
+        natural_log_a = np.asarray([np.log(a) for a in outputs])
+        natural_log_1_a = np.asarray([np.log(1-a) for a in outputs])
